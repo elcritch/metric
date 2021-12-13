@@ -7,6 +7,7 @@
 
 import metric
 import unittest, strformat
+import json
 
 suite "metric tests":
   test "unit consistency":
@@ -32,10 +33,10 @@ suite "metric tests":
       hektar = 10_000.0 * meter ^ 2
     var
       area = meter ^ 2
-    check area.hektar == 0.0001
+    check area as hektar == 0.0001
     area.hektar = 10
-    check area.milliMeterSquared == 1e11
-    check (not(compiles(area.meter)))
+    check area~milliMeterSquared == 1e11
+    check (not(compiles(area~meter)))
 
   test "unit macro":
     withUnits:
@@ -43,11 +44,12 @@ suite "metric tests":
         tenMilliMeters = 10.0 * mm
         oneCentiMeter = 1.0 * cm
       check tenMilliMeters == oneCentiMeter
-      check tenMilliMeters.cm == 1.0
+      check tenMilliMeters as cm == 1.0
 
   test "pretty printing":
-    check $Force == "kg m / s^2"
-    check $(meter * meter / second^2 * ampere) == "1.0 [m^2 A / s^2]"
+    check stringify(Force) == "kg m / s^2"
+    check fmt"{Force}" == "kg m / s^2"
+    check $(meter * meter / second^2 * ampere) == "1.0 [A m^2 / s^2]"
     check toStringWithUnit(10.0 * meter / second,
                            milli(meter) / second,
                            "mm / s") == "10000.0 [mm / s]"

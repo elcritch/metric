@@ -11,12 +11,12 @@ import algorithm, sequtils, tables
 type
   BaseDimension* = object {. pure, inheritable .} ## \
     ## The basic dimension object all dimensions should inherit from.
-  SomeDimension* = concept type Dim
-    ## A concept ensuring a matched type inherits from ``BaseDimension``.
-    var
-      x: ptr Dim
-      y: ptr BaseDimension
-    y = x
+  # BaseDimension* = concept type Dim
+  #   ## A concept ensuring a matched type inherits from ``BaseDimension``.
+  #   var
+  #     x: ptr Dim
+  #     y: ptr BaseDimension
+  #   y = x
   ProductDimension*[X: tuple] = object of BaseDimension ## \
     ## A type encoding a product of dimensions inside a static parameter.
     ## The designated type for ``X`` may be ``static[auto]``, but is actually
@@ -167,7 +167,7 @@ proc mulImpl(x, y: NimNode): NimNode =
   totalDen.sort(proc(x, y: NimNode): int = cmp($x, $y))
   result = makeQuotientTerms(totalNum, totalDen)
 
-macro `*`*(x: SomeDimension, y: distinct SomeDimension): untyped =
+macro `*`*(x: typedesc[BaseDimension], y: distinct typedesc[BaseDimension]): untyped =
   ## The ``ProductDimension`` between two dimensions.
   result = mulImpl(x, y)
 
@@ -183,7 +183,7 @@ proc divImpl(x, y: NimNode): NimNode =
   totalDen.sort(proc(x, y: NimNode): int = cmp($x, $y))
   result = makeQuotientTerms(totalNum, totalDen)
 
-macro `/`*(x: SomeDimension, y: distinct SomeDimension): untyped =
+macro `/`*(x: typedesc[BaseDimension], y: distinct typedesc[BaseDimension]): untyped =
   ## The ``QuotientDimension`` between two dimensions.
   result = divImpl(x, y)
 
@@ -194,12 +194,12 @@ proc powImpl(x: NimNode; y: int): NimNode =
     totalDen = xDen.cycle(y)
   result = makeQuotientTerms(totalNum, totalDen)
 
-macro `^`*(x: SomeDimension, y: static[int]): untyped =
+macro `^`*(x: typedesc[BaseDimension], y: static[int]): untyped =
   ## The ``ProductDimension`` resulting from taking the ``yth`` power of a
   ## dimension.
   result = powImpl(x, y)
 
-macro stringify*(dim: SomeDimension): string =
+macro stringify*(dim: typedesc[BaseDimension]): string =
   ## Stringifies any dimension type.
   let
     (num, den) = dim.getNumDen
@@ -285,7 +285,10 @@ macro stringify*(dim: SomeDimension): string =
   result = quote do:
     `result`[0 ..< `result`.len - 1]
 
-macro `$`*(dim: SomeDimension): string =
+macro `$`*(dim: BaseDimension): string =
   ## Stringifies a dimension type.
   result = quote do:
     stringify(`dim`)
+
+proc formatValue*(result: var string; value: typedesc[BaseDimension]; specifier: string) =
+  result &= stringify(value)

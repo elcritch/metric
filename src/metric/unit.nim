@@ -88,14 +88,16 @@ template `as`*[U, X](x: Metric[U, X]; units: Metric[U, X]): X =
   ## Retrieves the value of ``x`` in units of ``units``
   x.val / units.val
 
-template `.`*[U, X](x: Metric[U, X]; units: Metric[U, X]): X =
-  ## Retrieves the value of ``x`` in units of ``units``
+template `~`*[U, X](x: Metric[U, X]; units: Metric[U, X]): X =
+  # Retrieves the value of ``x`` in units of ``units``
   x.val / units.val
 
-proc `$`*[U, X](x: Metric[U, X]): string = fmt"{x.val} [{U}]"
+proc `$`*[U, X](x: Metric[U, X]): string =
+  $(x.val) & " [" & stringify(U) & "]"
+
 proc toStringWithUnit*[U, X](x: Metric[U, X]; unit: Metric[U, X];
                              expression: string): string =
   ## Stringifies a dimensionful value, with a given unit and unit-expression.
   let
-    unitVal = x.unit
+    unitVal = x as unit
   fmt"{unitVal} [{expression}]"
